@@ -4,7 +4,7 @@ from Regression.Regression import regression
 
 def main():
     classification()
-    regression()
+   # regression()
 
 
 if __name__ == "__main__":

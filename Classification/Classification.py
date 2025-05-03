@@ -1,5 +1,7 @@
 import pandas as pd
 from seaborn import pairplot
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 import time
 
@@ -34,35 +36,37 @@ def load_and_explore_data(filepath):
     return data
 
 
-# This function preprocesses the data
-# It drops irrelevant columns and handles missing values
 def preprocess_data(data, relevant_columns):
-    print("\n Check for missing values: ")
-    print(data[relevant_columns].isnull().sum())
-    data = data.dropna(subset=relevant_columns)
+    features = ['year', 'num_pages', 'ratings_count', 'text_reviews_count']
+    target = 'high_rating'
+
     ## Convert 'publication_date' to datetime format
-    #coerce = invalid parsing =>  set as NaN
     data['publication_date_parsed'] = pd.to_datetime(data['publication_date'], errors='coerce')
 
-    # Check for invalid dates
-    # If there are invalid dates, drop those rows
-    if data['publication_date_parsed'].isnull().any():
-        invalid_dates_index = data[data['publication_date_parsed'].isnull()].index
-        print(f"Rows with invalid dates: {invalid_dates_index}")
-        data.drop(index = invalid_dates_index, inplace=True)
-
-    # Extract year from publication_date
+    # Extract year before checking for missing values
     data['year'] = data['publication_date_parsed'].dt.year
-    data = data.dropna(subset = relevant_columns + ['year'])
-    return data
+
+    print("\n Check for missing values: ")
+    print(data[relevant_columns].isnull().sum())
+
+    # Drop rows with missing values in required columns
+    data = data.dropna(subset=relevant_columns + ['year'])
+
+    # Final feature/target split
+    X = data[features]
+    y = data[target]
+
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    return X_train, X_test, y_train, y_test
 
 
 # This function normalizes the numeric columns using MinMaxScaler
 # It scales the values to a range between 0 and 1
-def normalize_data(data, numeric_columns):
+def normalize_data(X_train, X_test):
     scaler = MinMaxScaler()
-    data[numeric_columns] = scaler.fit_transform(data[numeric_columns])
-    return data
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+    return X_train_scaled, X_test_scaled
 
 
 
@@ -73,8 +77,8 @@ def classification():
     relevant_columns = ['average_rating', 'num_pages', 'ratings_count', 'text_reviews_count', 'publication_date']
     try:
         data = load_and_explore_data('Dataset/books.csv')
-        data = preprocess_data(data, relevant_columns)
-        data = normalize_data(data, numeric_columns)
+        X_train, X_test, y_train, y_test = preprocess_data(data, relevant_columns)
+        X_train, X_test = normalize_data(X_train, X_test)
         start_time = time.time()
         print("\n Preprocessing completed successfully.")
         print(f"Time taken for preprocessing: {time.time() - start_time} seconds")
@@ -108,7 +112,10 @@ def classification():
         #Now that we have explored the data and visualized the relationships between different attributes,
         # we can proceed to train the Decision Tree Classifier.
         # Call the decision tree training model function
-        decision_tree_training_model(data)
+        clf = decision_tree_training_model(X_train, y_train, X_test, y_test)
+        predictions = clf.predict(X_test)
+        # Calculate & print the accuracy of the model
+        print("Accuracy score: ", accuracy_score(y_test, predictions))
         training_time_decision_tree = time.time() - start_time
         print("\n Decision Tree Classifier trained successfully.")
 
@@ -143,12 +150,6 @@ def classification():
         # Then, we plot the confusion matrix to analyze classification results in more detail
         confustion_matrix_plot(clf, X_test, y_test)
         print("\n Confusion matrix plot plotted successfully.")
-
-
-
-
-
-
 
     except Exception as e:
         print(f"Error loading data: {e}")

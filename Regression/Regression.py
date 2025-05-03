@@ -104,11 +104,6 @@ def regression():
             plot_detailed_residuals(y_test, predictions)
             print("\n Detailed Residuals Plot plotted successfully.")
 
-
-
-
-
-
     except Exception as e:
         print(f"An error occured: {e}")
 
