@@ -9,7 +9,7 @@ from Classification.DecisionTree.DecisionTree import decision_tree_training_mode
 from Classification.DecisionTree.ExploratoryDataAnalysis import correlation_matrix, pair_plot, box_plot, plot_density, \
     plot_time_series, scatter_plot_matrix
 from Classification.SVM.ExploratoryDataAnalysis import correlation_matrix_plot, feature_distribution_plot, \
-    model_performance_plot, confustion_matrix_plot
+    model_performance_plot, confusion_matrix_plot
 from Classification.SVM.SVM import svm_training_model
 
 
@@ -112,8 +112,8 @@ def classification():
         #Now that we have explored the data and visualized the relationships between different attributes,
         # we can proceed to train the Decision Tree Classifier.
         # Call the decision tree training model function
-        clf = decision_tree_training_model(X_train, y_train, X_test, y_test)
-        predictions = clf.predict(X_test)
+        dt_clf = decision_tree_training_model(X_train, y_train, X_test, y_test)
+        predictions = dt_clf.predict(X_test)
         # Calculate & print the accuracy of the model
         print("Accuracy score: ", accuracy_score(y_test, predictions))
         training_time_decision_tree = time.time() - start_time
@@ -132,11 +132,15 @@ def classification():
         correlation_matrix_plot(data)
         print("\n Correlation matrix plotted successfully.")
 
-        #Now that we have explored the data and visualized the relationships between different attributes,
-        # we can proceed to train the Decision Tree Classifier.
-        # Call the decision tree training model function
         start_time_svm = time.time()
-        clf, X_test, y_test = svm_training_model(data)
+        # clf, X_test, y_test = svm_training_model(data)
+        svm_clf = svm_training_model( X_train, y_train, X_test, y_test)
+
+        predictions = svm_clf.predict(X_test)
+        accuracy = accuracy_score(y_test, predictions)
+
+        print("Accuracy score: ", accuracy)
+
         training_time_svm = time.time() - start_time_svm
         print(f"SVM - Training Time: {training_time_svm:.4f} seconds")
 
@@ -144,11 +148,11 @@ def classification():
 
         # After training the SVM classifier, we visualize its performance
         # First, we plot the overall accuracy
-        model_performance_plot(clf, X_test, y_test)
+        model_performance_plot(svm_clf, X_test, y_test)
         print("\n Model performance plot plotted successfully.")
 
         # Then, we plot the confusion matrix to analyze classification results in more detail
-        confustion_matrix_plot(clf, X_test, y_test)
+        confusion_matrix_plot(svm_clf, X_test, y_test)
         print("\n Confusion matrix plot plotted successfully.")
 
     except Exception as e:

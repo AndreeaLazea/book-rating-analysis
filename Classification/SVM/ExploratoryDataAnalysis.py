@@ -32,7 +32,7 @@ def model_performance_plot(model, X_test, y_test):
     plt.show()
 
 #Confusion matrix Plot
-def confustion_matrix_plot(model, X_test, y_test):
+def confusion_matrix_plot(model, X_test, y_test):
     y_pred = model.predict(X_test)
     cm = confusion_matrix(y_test, y_pred)
     disp = ConfusionMatrixDisplay(confusion_matrix=cm)
